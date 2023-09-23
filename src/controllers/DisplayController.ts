@@ -58,8 +58,9 @@ const displayController = (() => {
   function updateActors() {
     if (ctx) {
       _actors.forEach((x) => {
-        x.setCtx(ctx);
+        x.setActors(_actors.filter((actor) => actor !== x));
         x.setCanvas(canvas);
+        x.setCtx(ctx);
       });
     } else {
       throw new Error("Update Actors: No context");

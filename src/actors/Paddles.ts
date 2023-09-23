@@ -1,4 +1,4 @@
-import { Actor } from "../types/Actor.ts";
+import { Actor, Vertex } from "../types/Actor.ts";
 import { Coordinate, Dimensions } from "../types/types.ts";
 
 export type Dimension = number;
@@ -13,6 +13,7 @@ const Paddle = (side: "left" | "right"): PaddleActor => {
   const _dimensions: Dimensions = { height: 0, width: 0 };
   const _vy: number = 1;
   let _yDir: 1 | -1 = getRandomDirection();
+  let _actors: Array<Actor>;
 
   if (!side) {
     throw new Error("PaddleActor: Pick a side!");
@@ -78,7 +79,21 @@ const Paddle = (side: "left" | "right"): PaddleActor => {
     _canvas = canvas;
     updateConfiguration();
   }
-  return { setCtx, setCanvas, draw };
+
+  function getVertices(): Array<Vertex> {
+    return [
+      [_position.x - _dimensions.width / 2, _position.y - _dimensions.height / 2],
+      [_position.x + _dimensions.width / 2, _position.y - _dimensions.height / 2],
+      [_position.x + _dimensions.width / 2, _position.y + _dimensions.height / 2],
+      [_position.x - _dimensions.width / 2, _position.y + _dimensions.height / 2],
+    ];
+  }
+
+  function setActors(actors: Array<Actor>): void {
+    _actors = actors;
+  }
+
+  return { setCtx, setCanvas, draw, getVertices, setActors };
 };
 
 export default Paddle;

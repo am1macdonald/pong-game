@@ -1,4 +1,4 @@
-import { Actor } from "../types/Actor.ts";
+import { Actor, Vertex } from "../types/Actor.ts";
 import { Coordinate } from "../types/types.ts";
 
 export type Dimension = number;
@@ -15,12 +15,13 @@ const PongBall = ((): PongBallActor => {
   let _xDir: 1 | -1 = getRandomDirection();
   const _vy: number = 1;
   let _yDir: 1 | -1 = getRandomDirection();
+  let _actors: Array<Actor>;
 
-  function getRandomDirection(last: number | undefined = 0) {
+  function getRandomDirection(): 1 | -1 {
     if (Math.floor(Math.random() * 2) === 0) {
-      return last + 1;
+      return 1;
     } else {
-      return -(last + 1);
+      return -1;
     }
   }
 
@@ -31,8 +32,10 @@ const PongBall = ((): PongBallActor => {
         x: _canvas.clientWidth / 2,
         y: _canvas.clientHeight / 2,
       };
+      reset();
+    } else {
+      throw new Error("updateConfig: No Canvas");
     }
-    reset();
   }
 
   function updatePosition() {
@@ -44,6 +47,23 @@ const PongBall = ((): PongBallActor => {
     const xDest = _position.x + _vx * _xDir + (_dimension * _xDir) / 2;
     if (xDest < 0 || xDest > _canvas.clientWidth) {
       _xDir *= -1;
+      _yDir = getRandomDirection();
+      reset();
+    } else {
+      _actors.forEach((actor) => {
+        const vertices = actor.getVertices();
+        let i = 0;
+        const y0 = vertices[1][1];
+        const y1 = vertices[2][1];
+        while (i < vertices.length) {
+          const x = vertices[i][0];
+          if (x === xDest && y0 < _position.y - _dimension / 2 && y1 > _position.y - _dimension / 2) {
+            _xDir *= -1;
+            break;
+          }
+          i += 1;
+        }
+      });
     }
     const yDest = _position.y + _vy * _yDir + (_dimension * _yDir) / 2;
     if (yDest < 0 || yDest > _canvas.clientHeight) {
@@ -52,7 +72,7 @@ const PongBall = ((): PongBallActor => {
   }
 
   function reset() {
-    _position = _initial;
+    _position = { ..._initial };
   }
 
   function draw() {
@@ -75,7 +95,21 @@ const PongBall = ((): PongBallActor => {
     _canvas = canvas;
     updateConfiguration();
   }
-  return { setCtx, setCanvas, draw };
+
+  function getVertices(): Array<Vertex> {
+    return [
+      [_position.x - _dimension / 2, _position.y - _dimension / 2],
+      [_position.x + _dimension / 2, _position.y - _dimension / 2],
+      [_position.x + _dimension / 2, _position.y + _dimension / 2],
+      [_position.x - _dimension / 2, _position.y + _dimension / 2],
+    ];
+  }
+
+  function setActors(actors: Array<Actor>): void {
+    _actors = actors;
+  }
+
+  return { setCtx, setCanvas, draw, getVertices, setActors };
 })();
 
 export default PongBall;
