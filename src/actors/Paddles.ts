@@ -1,5 +1,5 @@
 import { Actor, Vertex } from "../types/Actor.ts";
-import { Coordinate, Dimensions } from "../types/types.ts";
+import { Coordinate, Dimensions, Edge } from "../types/types.ts";
 
 export type Dimension = number;
 
@@ -11,7 +11,7 @@ const Paddle = (side: "left" | "right"): PaddleActor => {
   let _position: Coordinate;
   let _initial: Coordinate;
   const _dimensions: Dimensions = { height: 0, width: 0 };
-  const _vy: number = 1;
+  const _vy: number = 3;
   let _yDir: 1 | -1 = getRandomDirection();
   let _actors: Array<Actor>;
 

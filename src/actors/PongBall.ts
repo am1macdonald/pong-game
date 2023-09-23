@@ -11,9 +11,9 @@ const PongBall = ((): PongBallActor => {
   let _position: Coordinate;
   let _initial: Coordinate;
   let _dimension: Dimension;
-  const _vx: number = 1;
+  const _vx: number = 4;
   let _xDir: 1 | -1 = getRandomDirection();
-  const _vy: number = 1;
+  const _vy: number = 4;
   let _yDir: 1 | -1 = getRandomDirection();
   let _actors: Array<Actor>;
 
@@ -50,25 +50,27 @@ const PongBall = ((): PongBallActor => {
       _yDir = getRandomDirection();
       reset();
     } else {
-      _actors.forEach((actor) => {
-        const vertices = actor.getVertices();
-        let i = 0;
-        const y0 = vertices[1][1];
-        const y1 = vertices[2][1];
-        while (i < vertices.length) {
-          const x = vertices[i][0];
-          if (x === xDest && y0 < _position.y - _dimension / 2 && y1 > _position.y - _dimension / 2) {
-            _xDir *= -1;
-            break;
-          }
-          i += 1;
-        }
-      });
+      if (
+        _actors.reduce((acc, curr) => {
+          if (acc) return acc;
+          return checkForCollision(getVertices(), curr.getVertices());
+        }, false)
+      )
+        _xDir *= -1;
     }
     const yDest = _position.y + _vy * _yDir + (_dimension * _yDir) / 2;
     if (yDest < 0 || yDest > _canvas.clientHeight) {
       _yDir *= -1;
     }
+  }
+
+  function checkForCollision(boxOne: Array<Vertex>, boxTwo: Array<Vertex>) {
+    return (
+      boxOne[0][0] < boxTwo[1][0] &&
+      boxOne[1][0] > boxTwo[0][0] &&
+      boxOne[3][1] > boxTwo[0][1] &&
+      boxOne[0][1] < boxTwo[3][1]
+    );
   }
 
   function reset() {
