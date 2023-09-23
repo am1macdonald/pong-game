@@ -1,6 +1,6 @@
-import { Actor } from "./types/Actor.ts";
+import { Actor } from "../types/Actor.ts";
 
-const DisplayController = (() => {
+const displayController = (() => {
   // PRIVATE
 
   const ASPECT_RATIO = 4 / 3;
@@ -11,6 +11,10 @@ const DisplayController = (() => {
 
   if (!canvas) {
     throw new Error("no canvas!!!");
+  }
+
+  if (!ctx) {
+    throw new Error("Display Controller: no context");
   }
 
   function resizeCanvas(div: HTMLElement) {
@@ -24,16 +28,20 @@ const DisplayController = (() => {
   }
 
   function updateFrame() {
-    while (_animating) {
-      window?.requestAnimationFrame(() => {
-        _actors.forEach((x) => x.draw());
-      });
-      updateFrame();
+    if (!_animating) {
+      return;
     }
+    window?.requestAnimationFrame(() => {
+      if (!ctx) {
+        throw new Error("update frame: no context!");
+      }
+      ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+      _actors.forEach((x) => x.draw());
+      updateFrame();
+    });
   }
 
   // PUBLIC
-
   function attachToView(div: HTMLElement) {
     resizeCanvas(div);
     div.appendChild(canvas);
@@ -47,8 +55,20 @@ const DisplayController = (() => {
     actors.forEach((x) => _actors.push(x));
   }
 
+  function updateActors() {
+    if (ctx) {
+      _actors.forEach((x) => {
+        x.setCtx(ctx);
+        x.setCanvas(canvas);
+      });
+    } else {
+      throw new Error("Update Actors: No context");
+    }
+  }
+
   function start() {
     _animating = true;
+    updateActors();
     updateFrame();
   }
 
@@ -70,4 +90,6 @@ const DisplayController = (() => {
   };
 })();
 
-export default DisplayController;
+export default displayController;
+
+export type DisplayController = typeof displayController;

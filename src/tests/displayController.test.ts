@@ -1,18 +1,18 @@
 // @vitest-environment jsdom
-import DisplayController from "../DisplayController.ts";
+import displayController from "../controllers/DisplayController.ts";
 import { describe, expect, test } from "vitest";
 
 describe("Display Controller", () => {
   test("canvas attaches properly", () => {
     const dom = getDom({ height: 300, width: 400 });
-    DisplayController.attachToView(dom);
+    displayController.attachToView(dom);
     const canvas = dom.firstElementChild as HTMLCanvasElement;
     expect(canvas).toBeTruthy();
   });
 
   test("canvas always fits dom 4:3", () => {
     const dom = getDom({ height: 300, width: 400 });
-    DisplayController.attachToView(dom);
+    displayController.attachToView(dom);
     const canvas = dom.firstElementChild as HTMLCanvasElement;
     console.log(canvas.getContext("2d"));
 
@@ -22,7 +22,7 @@ describe("Display Controller", () => {
 
   test("canvas always fits dom 3:4", () => {
     const dom = getDom({ height: 400, width: 300 });
-    DisplayController.attachToView(dom);
+    displayController.attachToView(dom);
     const canvas = dom.firstElementChild as HTMLCanvasElement;
 
     expect(canvas.clientWidth).toBeLessThanOrEqual(dom.clientWidth);
@@ -31,7 +31,7 @@ describe("Display Controller", () => {
 
   test("canvas always fits dom", () => {
     const dom = getDom({ height: Math.random() * 1000, width: Math.random() * 1000 });
-    DisplayController.attachToView(dom);
+    displayController.attachToView(dom);
     const canvas = dom.firstElementChild as HTMLCanvasElement;
 
     expect(canvas.clientWidth).toBeLessThanOrEqual(dom.clientWidth);
