@@ -11,11 +11,23 @@ if (!app) throw new Error("No app");
 
 const paddleLeft = Paddle("left");
 const paddleRight = Paddle("right");
+let running = false;
 
 // init display controller
 displayController.attachToView(app);
 displayController.registerActors([PongBall, paddleLeft, paddleRight]);
-displayController.start();
 
 // init game controller;
 gameController.setDisplayController(displayController);
+
+window.addEventListener("keydown", (evt) => {
+  console.log(evt);
+  if (evt.key === " ") {
+    if (running) {
+      displayController.stop();
+    } else {
+      displayController.start();
+    }
+    running = !running;
+  }
+});

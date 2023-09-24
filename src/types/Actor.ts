@@ -8,4 +8,5 @@ export interface Actor {
   setCtx: (ctx: CanvasRenderingContext2D) => void;
   getVertices: () => Array<Vertex>;
   setActors: (actors: Array<Actor>) => void;
+  getVelocity: () => { vx: number; vy: number };
 }

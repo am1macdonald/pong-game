@@ -1,5 +1,5 @@
 import { Actor, Vertex } from "../types/Actor.ts";
-import { Coordinate } from "../types/types.ts";
+import { Coordinate, Dimensions } from "../types/types.ts";
 
 export type Dimension = number;
 
@@ -38,29 +38,38 @@ const PongBall = ((): PongBallActor => {
     }
   }
 
-  function updatePosition() {
-    _position.x += _vx * _xDir;
-    _position.y += _vy * _yDir;
+  function getNextPosition(): Coordinate {
+    return {
+      x: _position.x + _vx * _xDir,
+      y: _position.y + _vy * _yDir,
+    };
   }
 
-  function checkPath() {
-    const xDest = _position.x + _vx * _xDir + (_dimension * _xDir) / 2;
+  function updatePosition() {
+    const next = getNextPosition();
+    const xDest = next.x + _vx * _xDir + (_dimension * _xDir) / 2;
+    const yDest = next.y + _vy * _yDir + (_dimension * _yDir) / 2;
     if (xDest < 0 || xDest > _canvas.clientWidth) {
       _xDir *= -1;
       _yDir = getRandomDirection();
       reset();
-    } else {
-      if (
-        _actors.reduce((acc, curr) => {
-          if (acc) return acc;
-          return checkForCollision(getVertices(), curr.getVertices());
-        }, false)
-      )
-        _xDir *= -1;
-    }
-    const yDest = _position.y + _vy * _yDir + (_dimension * _yDir) / 2;
-    if (yDest < 0 || yDest > _canvas.clientHeight) {
+    } else if (yDest < 0 || yDest > _canvas.clientHeight) {
       _yDir *= -1;
+      _position = getNextPosition();
+    } else {
+      _actors.forEach((curr) => {
+        const myVerts = getVertices();
+        const yourVerts = curr.getVertices();
+        if (checkForCollision(myVerts, yourVerts)) {
+          const oV = curr.getVelocity().vy;
+          console.log([myVerts[2][1] - _vy <= yourVerts[0][1], myVerts[0][1] + _vy >= yourVerts[2][1]]);
+          if (myVerts[2][1] - (_vy + oV) <= yourVerts[0][1] || myVerts[0][1] + _vy + oV >= yourVerts[2][1]) {
+            _yDir *= -1;
+            _position.y += _yDir * (_vy + oV);
+          } else _xDir *= -1;
+        }
+      });
+      _position = getNextPosition();
     }
   }
 
@@ -81,11 +90,10 @@ const PongBall = ((): PongBallActor => {
     if (!_ctx) {
       throw new Error("Pongball: no context");
     }
+    updatePosition();
     _ctx.fillStyle = "white";
     const half = _dimension / 2;
     _ctx.fillRect(_position.x - half, _position.y - half, _dimension, _dimension);
-    checkPath();
-    updatePosition();
   }
 
   function setCtx(ctx: CanvasRenderingContext2D) {
@@ -98,12 +106,12 @@ const PongBall = ((): PongBallActor => {
     updateConfiguration();
   }
 
-  function getVertices(): Array<Vertex> {
+  function getVertices(pos: Coordinate = _position, dims: Dimension = _dimension): Array<Vertex> {
     return [
-      [_position.x - _dimension / 2, _position.y - _dimension / 2],
-      [_position.x + _dimension / 2, _position.y - _dimension / 2],
-      [_position.x + _dimension / 2, _position.y + _dimension / 2],
-      [_position.x - _dimension / 2, _position.y + _dimension / 2],
+      [pos.x - dims / 2, pos.y - dims / 2],
+      [pos.x + dims / 2, pos.y - dims / 2],
+      [pos.x + dims / 2, pos.y + dims / 2],
+      [pos.x - dims / 2, pos.y + dims / 2],
     ];
   }
 
@@ -111,7 +119,14 @@ const PongBall = ((): PongBallActor => {
     _actors = actors;
   }
 
-  return { setCtx, setCanvas, draw, getVertices, setActors };
+  function getVelocity() {
+    return {
+      vx: _vx,
+      vy: _vy,
+    };
+  }
+
+  return { setCtx, setCanvas, draw, getVertices, setActors, getVelocity };
 })();
 
 export default PongBall;
