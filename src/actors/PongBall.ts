@@ -1,5 +1,5 @@
 import { Actor, Vertex } from "../types/Actor.ts";
-import { Coordinate, Dimensions } from "../types/types.ts";
+import { Coordinate } from "../types/types.ts";
 
 export type Dimension = number;
 
@@ -62,7 +62,6 @@ const PongBall = ((): PongBallActor => {
         const yourVerts = curr.getVertices();
         if (checkForCollision(myVerts, yourVerts)) {
           const oV = curr.getVelocity().vy;
-          console.log([myVerts[2][1] - _vy <= yourVerts[0][1], myVerts[0][1] + _vy >= yourVerts[2][1]]);
           if (myVerts[2][1] - (_vy + oV) <= yourVerts[0][1] || myVerts[0][1] + _vy + oV >= yourVerts[2][1]) {
             _yDir *= -1;
             _position.y += _yDir * (_vy + oV);

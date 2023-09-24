@@ -14,7 +14,6 @@ const Paddle = (side: "left" | "right"): PaddleActor => {
   const _vy: number = 3;
   const _vx: number = 0;
   let _yDir: 1 | -1 = getRandomDirection();
-  let _actors: Array<Actor>;
 
   if (!side) {
     throw new Error("PaddleActor: Pick a side!");
@@ -90,9 +89,7 @@ const Paddle = (side: "left" | "right"): PaddleActor => {
     ];
   }
 
-  function setActors(actors: Array<Actor>): void {
-    _actors = actors;
-  }
+  function setActors(): void {}
 
   function getVelocity() {
     return {
