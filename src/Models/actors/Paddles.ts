@@ -1,8 +1,6 @@
 import { Actor, Vertex } from "../../types/Actor.ts";
 import { Command, Controllable, Coordinate, Dimensions } from "../../types/types.ts";
 
-export type Dimension = number;
-
 export type PaddleDirection = 1 | 0 | -1;
 
 export interface PaddleActor extends Actor, Controllable {}
@@ -13,7 +11,7 @@ const Paddle = (side: "left" | "right", controller: "player" | "computer"): Padd
   let _position: Coordinate;
   let _initial: Coordinate;
   const _dimensions: Dimensions = { height: 0, width: 0 };
-  const _vy: number = 3;
+  const _vy: number = 6;
   const _vx: number = 0;
   let _yDir: PaddleDirection = controller === "player" ? 0 : controller === "computer" ? getRandomDirection() : 1;
 
@@ -49,7 +47,11 @@ const Paddle = (side: "left" | "right", controller: "player" | "computer"): Padd
   function checkPath() {
     const yDest = _position.y + _vy * _yDir + (_dimensions.height * _yDir) / 2;
     if (yDest < 0 || yDest > _canvas.clientHeight) {
-      _yDir *= -1;
+      if (controller === "player") {
+        _yDir *= 0;
+      } else {
+        _yDir *= -1;
+      }
     }
   }
 
@@ -105,7 +107,7 @@ const Paddle = (side: "left" | "right", controller: "player" | "computer"): Padd
   }
 
   function execute(command: Command<PaddleDirection, PaddleDirection, PaddleDirection>) {
-    _yDir = command.execute(command.value);
+    _yDir = command.execute();
   }
 
   return { setCtx, setCanvas, draw, getVertices, setActors, getVelocity, getPosition, execute };
@@ -113,10 +115,6 @@ const Paddle = (side: "left" | "right", controller: "player" | "computer"): Padd
 
 export default Paddle;
 
-export function makeChangePaddleDirectionCommand(paddle: PaddleActor, value: PaddleDirection) {
-  return { execute: (currentVelocity: PaddleDirection) => currentVelocity * value } as Command<
-    PaddleDirection,
-    PaddleDirection,
-    PaddleDirection
-  >;
+export function makeChangePaddleDirectionCommand(value: PaddleDirection) {
+  return { execute: () => value } as Command<PaddleDirection, PaddleDirection, PaddleDirection>;
 }

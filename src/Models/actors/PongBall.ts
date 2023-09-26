@@ -64,7 +64,7 @@ const PongBall = ((): PongBallActor => {
           const oV = curr.getVelocity().vy;
           if (myVerts[2][1] - (_vy + oV) <= yourVerts[0][1] || myVerts[0][1] + _vy + oV >= yourVerts[2][1]) {
             _yDir *= -1;
-            _position.y += _yDir * (_vy + oV);
+            _position.y += _yDir * (_vy * oV);
           } else _xDir *= -1;
         }
       });
@@ -125,7 +125,11 @@ const PongBall = ((): PongBallActor => {
     };
   }
 
-  return { setCtx, setCanvas, draw, getVertices, setActors, getVelocity };
+  function getPosition(): Coordinate {
+    return _position;
+  }
+
+  return { setCtx, setCanvas, draw, getVertices, setActors, getVelocity, getPosition };
 })();
 
 export default PongBall;
