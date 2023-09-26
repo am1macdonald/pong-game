@@ -1,11 +1,13 @@
-import { Actor, Vertex } from "../types/Actor.ts";
-import { Coordinate, Dimensions } from "../types/types.ts";
+import { Actor, Vertex } from "../../types/Actor.ts";
+import { Command, Controllable, Coordinate, Dimensions } from "../../types/types.ts";
 
 export type Dimension = number;
 
-export interface PaddleActor extends Actor {}
+export type PaddleDirection = 1 | 0 | -1;
 
-const Paddle = (side: "left" | "right"): PaddleActor => {
+export interface PaddleActor extends Actor, Controllable {}
+
+const Paddle = (side: "left" | "right", controller: "player" | "computer"): PaddleActor => {
   let _ctx: CanvasRenderingContext2D;
   let _canvas: HTMLCanvasElement;
   let _position: Coordinate;
@@ -13,7 +15,7 @@ const Paddle = (side: "left" | "right"): PaddleActor => {
   const _dimensions: Dimensions = { height: 0, width: 0 };
   const _vy: number = 3;
   const _vx: number = 0;
-  let _yDir: 1 | -1 = getRandomDirection();
+  let _yDir: PaddleDirection = controller === "player" ? 0 : controller === "computer" ? getRandomDirection() : 1;
 
   if (!side) {
     throw new Error("PaddleActor: Pick a side!");
@@ -80,13 +82,17 @@ const Paddle = (side: "left" | "right"): PaddleActor => {
     updateConfiguration();
   }
 
-  function getVertices(): Array<Vertex> {
+  function getVertices(pos: Coordinate = _position, dims: Dimensions = _dimensions): Array<Vertex> {
     return [
-      [_position.x - _dimensions.width / 2, _position.y - _dimensions.height / 2],
-      [_position.x + _dimensions.width / 2, _position.y - _dimensions.height / 2],
-      [_position.x + _dimensions.width / 2, _position.y + _dimensions.height / 2],
-      [_position.x - _dimensions.width / 2, _position.y + _dimensions.height / 2],
+      [pos.x - dims.width / 2, pos.y - dims.height / 2],
+      [pos.x + dims.width / 2, pos.y - dims.height / 2],
+      [pos.x + dims.width / 2, pos.y + dims.height / 2],
+      [pos.x - dims.width / 2, pos.y + dims.height / 2],
     ];
+  }
+
+  function getPosition(): Coordinate {
+    return _position;
   }
 
   function setActors(): void {}
@@ -98,7 +104,19 @@ const Paddle = (side: "left" | "right"): PaddleActor => {
     };
   }
 
-  return { setCtx, setCanvas, draw, getVertices, setActors, getVelocity };
+  function execute(command: Command<PaddleDirection, PaddleDirection, PaddleDirection>) {
+    _yDir = command.execute(command.value);
+  }
+
+  return { setCtx, setCanvas, draw, getVertices, setActors, getVelocity, getPosition, execute };
 };
 
 export default Paddle;
+
+export function makeChangePaddleDirectionCommand(paddle: PaddleActor, value: PaddleDirection) {
+  return { execute: (currentVelocity: PaddleDirection) => currentVelocity * value } as Command<
+    PaddleDirection,
+    PaddleDirection,
+    PaddleDirection
+  >;
+}

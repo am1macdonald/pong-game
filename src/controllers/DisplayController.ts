@@ -6,25 +6,34 @@ const displayController = (() => {
   const ASPECT_RATIO = 4 / 3;
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
+  canvas.className = "main";
+  const backgroundCanvas = document.createElement("canvas");
+  const backgroundCtx = backgroundCanvas.getContext("2d");
+  backgroundCanvas.className = "background";
   const _actors: Actor[] = [];
   let _animating: boolean = false;
 
-  if (!canvas) {
+  if (!canvas || !backgroundCanvas) {
     throw new Error("no canvas!!!");
   }
 
-  if (!ctx) {
+  if (!ctx || !backgroundCtx) {
     throw new Error("Display Controller: no context");
   }
 
   function resizeCanvas(div: HTMLElement) {
     if (div.clientWidth >= div.clientHeight) {
-      canvas.width = div.clientWidth;
-      canvas.height = div.clientWidth / ASPECT_RATIO;
+      [canvas, backgroundCanvas].forEach((c) => {
+        c.width = div.clientWidth;
+        c.height = div.clientWidth / ASPECT_RATIO;
+      });
     } else {
-      canvas.width = div.clientHeight;
-      canvas.height = div.clientHeight / ASPECT_RATIO;
+      [canvas, backgroundCanvas].forEach((c) => {
+        c.width = div.clientHeight;
+        c.height = div.clientHeight / ASPECT_RATIO;
+      });
     }
+    drawBackground();
   }
 
   function updateFrame() {
@@ -41,10 +50,20 @@ const displayController = (() => {
     });
   }
 
+  function drawBackground() {
+    if (!backgroundCtx) {
+      throw new Error("update frame: no context!");
+    }
+    backgroundCtx.fillStyle = "white";
+    const half = canvas.clientWidth / 2;
+    backgroundCtx.fillRect(half - 40, half - 40, canvas.clientWidth / 2, canvas.clientHeight / 2);
+  }
+
   // PUBLIC
   function attachToView(div: HTMLElement) {
     resizeCanvas(div);
     div.appendChild(canvas);
+    div.appendChild(backgroundCanvas);
   }
 
   function registerActor(actor: Actor) {

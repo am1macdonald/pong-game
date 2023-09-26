@@ -1,5 +1,5 @@
-import { Actor, Vertex } from "../types/Actor.ts";
-import { Coordinate } from "../types/types.ts";
+import { Actor, Vertex } from "../../types/Actor.ts";
+import { Coordinate } from "../../types/types.ts";
 
 export type Dimension = number;
 

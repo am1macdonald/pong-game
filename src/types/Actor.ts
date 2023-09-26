@@ -1,3 +1,5 @@
+import { Coordinate } from "./types.ts";
+
 export type xCoord = number;
 export type yCoord = number;
 export type Vertex = [xCoord, yCoord];
@@ -9,4 +11,5 @@ export interface Actor {
   getVertices: () => Array<Vertex>;
   setActors: (actors: Array<Actor>) => void;
   getVelocity: () => { vx: number; vy: number };
+  getPosition: () => Coordinate;
 }
