@@ -12,7 +12,6 @@ const Paddle = (side: "left" | "right", controller: "player" | "computer"): Padd
   let _initial: Coordinate;
   const _dimensions: Dimensions = { height: 0, width: 0 };
   const _vy: number = 6;
-  const _vx: number = 0;
   let _yDir: PaddleDirection = controller === "player" ? 0 : controller === "computer" ? getRandomDirection() : 1;
 
   if (!side) {
@@ -101,8 +100,8 @@ const Paddle = (side: "left" | "right", controller: "player" | "computer"): Padd
 
   function getVelocity() {
     return {
-      vx: _vx,
-      vy: _vy,
+      vx: 0,
+      vy: _vy * _yDir,
     };
   }
 

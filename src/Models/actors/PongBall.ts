@@ -58,27 +58,74 @@ const PongBall = ((): PongBallActor => {
       _position = getNextPosition();
     } else {
       _actors.forEach((curr) => {
-        const myVerts = getVertices();
-        const yourVerts = curr.getVertices();
-        if (checkForCollision(myVerts, yourVerts)) {
-          const oV = curr.getVelocity().vy;
-          if (myVerts[2][1] - (_vy + oV) <= yourVerts[0][1] || myVerts[0][1] + _vy + oV >= yourVerts[2][1]) {
-            _yDir *= -1;
-            _position.y += _yDir * (_vy * oV);
-          } else _xDir *= -1;
+        const collision = checkForCollision(curr);
+        if (collision > 0) {
+          if (collision & (1 << 0)) {
+            // collision with upper surface
+            _position.y -= _vy + curr.getVelocity().vy;
+            if (_yDir > 0)
+              // travelling downwards
+              _yDir = -1;
+          } else if (collision & (1 << 1)) {
+            // collision with lower surface
+            _position.y += _vy + curr.getVelocity().vy;
+            if (_yDir < 0)
+              // travelling upwards
+              _yDir = 1;
+          }
+
+          if (collision & (1 << 2)) {
+            // collision with left surface
+            _position.x -= _vx + curr.getVelocity().vx;
+            if (_xDir > 0)
+              // travelling rightwards
+              _xDir = -1;
+          } else if (collision & (1 << 3)) {
+            // collision with right surface
+            _position.x += _vx + curr.getVelocity().vx;
+
+            if (_xDir < 0)
+              // travelling leftwards
+              _xDir = 1;
+          }
         }
       });
       _position = getNextPosition();
     }
   }
 
-  function checkForCollision(boxOne: Array<Vertex>, boxTwo: Array<Vertex>) {
-    return (
-      boxOne[0][0] < boxTwo[1][0] &&
-      boxOne[1][0] > boxTwo[0][0] &&
-      boxOne[3][1] > boxTwo[0][1] &&
-      boxOne[0][1] < boxTwo[3][1]
-    );
+  function checkForCollision(actor: Actor): number {
+    const eps = 1e-3;
+    const boxOne = getVertices();
+    const boxTwo = actor.getVertices();
+
+    if (
+      !(
+        boxOne[0][0] < boxTwo[1][0] &&
+        boxOne[1][0] > boxTwo[0][0] &&
+        boxOne[3][1] > boxTwo[0][1] &&
+        boxOne[0][1] < boxTwo[3][1]
+      )
+    ) {
+      return -1;
+    }
+
+    // calculate bias flag in each direction
+    const bias_X = _position.x < actor.getPosition().x;
+    const bias_Y = _position.y < actor.getPosition().y;
+
+    // calculate penetration depths in each direction
+    const pen_X = bias_X ? boxOne[0][0] - boxTwo[1][0] : boxTwo[0][0] - boxOne[1][0];
+    const pen_Y = bias_Y ? boxOne[2][1] - boxTwo[0][1] : boxTwo[2][1] - boxOne[0][1];
+    const diff = pen_X - pen_Y;
+
+    if (diff > eps) {
+      return 1 << (bias_Y ? 0 : 1);
+    } else if (diff < -eps) {
+      return 1 << (bias_X ? 2 : 3);
+    } else {
+      return (1 << (bias_Y ? 0 : 1)) | (1 << (bias_X ? 2 : 3));
+    }
   }
 
   function reset() {
@@ -120,8 +167,8 @@ const PongBall = ((): PongBallActor => {
 
   function getVelocity() {
     return {
-      vx: _vx,
-      vy: _vy,
+      vx: _vx * _xDir,
+      vy: _vy * _yDir,
     };
   }
 
