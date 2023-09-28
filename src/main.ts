@@ -24,6 +24,7 @@ InputController.registerActor(paddleLeft, { down: "KeyR", up: "KeyW" });
 
 // init game controller;
 gameController.setDisplayController(displayController);
+gameController.initialize(PongBall);
 
 displayController.start();
 console.log(inputController);

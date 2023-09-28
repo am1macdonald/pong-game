@@ -1,9 +1,11 @@
 import { Actor, Vertex } from "../../types/Actor.ts";
 import { Coordinate } from "../../types/types.ts";
+import { Observable, Subscriber } from "../../types/Observable.ts";
+import { Players } from "../../controllers/GameController.ts";
 
 export type Dimension = number;
 
-export interface PongBallActor extends Actor {}
+export interface PongBallActor extends Actor, Observable {}
 
 const PongBall = ((): PongBallActor => {
   let _ctx: CanvasRenderingContext2D;
@@ -16,6 +18,7 @@ const PongBall = ((): PongBallActor => {
   const _vy: number = 4;
   let _yDir: 1 | -1 = getRandomDirection();
   let _actors: Array<Actor>;
+  let subscribers: Array<Subscriber> = [];
 
   function getRandomDirection(): 1 | -1 {
     if (Math.floor(Math.random() * 2) === 0) {
@@ -50,6 +53,11 @@ const PongBall = ((): PongBallActor => {
     const xDest = next.x + _vx * _xDir + (_dimension * _xDir) / 2;
     const yDest = next.y + _vy * _yDir + (_dimension * _yDir) / 2;
     if (xDest < 0 || xDest > _canvas.clientWidth) {
+      if (_xDir === -1) {
+        notify(Players.one);
+      } else {
+        notify(Players.two);
+      }
       _xDir *= -1;
       _yDir = getRandomDirection();
       reset();
@@ -176,7 +184,27 @@ const PongBall = ((): PongBallActor => {
     return _position;
   }
 
-  return { setCtx, setCanvas, draw, getVertices, setActors, getVelocity, getPosition };
+  function notify(player: Players) {
+    subscribers.forEach((x) => x.next(player));
+  }
+  function subscribe(sub: Subscriber) {
+    subscribers.push(sub);
+  }
+  function unsubscribe(sub: Subscriber) {
+    subscribers = subscribers.filter((x) => x !== sub);
+  }
+
+  return {
+    setCtx,
+    setCanvas,
+    draw,
+    getVertices,
+    setActors,
+    getVelocity,
+    getPosition,
+    unsubscribe,
+    subscribe,
+  };
 })();
 
 export default PongBall;
